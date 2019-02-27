@@ -1,0 +1,568 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Transform" : "AWS::Serverless-2016-10-31",
+  "Description" : "AWS Serverless API that exposes the add, remove and get operations for a product platform using Amazon DynamoDB.",
+  "Parameters" : {
+    "ShouldCreateTable" : {
+      "Type" : "String",        
+      "AllowedValues" : ["true", "false"],
+      "Description" : "If true then the DynamoDB product table will be created with the CloudFormation stack."
+    },  
+    "ProductTableName" : {
+        "Type" : "String",
+        "Description" : "Name of DynamoDB table used to store the product post. If left blank a new table will be created.",
+        "MinLength" : "0"
+    },
+	"UserTableName" : {
+        "Type" : "String",
+        "Description" : "Name of DynamoDB table used to store the product post. If left blank a new table will be created.",
+        "MinLength" : "0"
+    },
+	"BidTableName" : {
+        "Type" : "String",
+        "Description" : "Name of DynamoDB table used to store the product post. If left blank a new table will be created.",
+        "MinLength" : "0"
+    },
+    "ReadCapacity" : {
+        "Type" : "Number",
+        "Description" : "Read capacity for the DynamoDB product table.",
+        "Default" : "3",
+        "MinValue" : 1
+    },
+    "WriteCapacity" : {
+        "Type" : "Number",
+        "Description" : "Write capacity for the DynamoDB product table.",
+        "Default" : "3",
+        "MinValue" : 1
+    }
+  },
+
+  "Conditions" : {
+    "CreateProductTable" : {"Fn::Equals" : [{"Ref" : "ShouldCreateTable"}, "true"]},
+	  "TableNameGenerated" : {"Fn::Equals" : [{"Ref" : "ProductTableName"}, ""]},
+	  "CreateUserTable" : {"Fn::Equals" : [{"Ref" : "ShouldCreateTable"}, "true"]},
+	  "UserTableNameGenerated" : {"Fn::Equals" : [{"Ref" : "UserTableName"}, ""]},
+	  "CreateBidTable" : {"Fn::Equals" : [{"Ref" : "ShouldCreateTable"}, "true"]},
+	  "BidTableNameGenerated" : {"Fn::Equals" : [{"Ref" : "BidTableName"}, ""]}
+  },
+
+  "Resources" : {
+
+    "GetProducts" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.ProductFunctions::GetProductsAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a list of products",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "ProductTable" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/product",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "GetProduct" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.ProductFunctions::GetProductAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a single product",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "ProductTable" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/product/{Id}",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "AddProduct" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.ProductFunctions::AddProductAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to add a product",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "ProductTable" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/product",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    },
+
+	"UpdateProduct" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.ProductFunctions::UpdateProductAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to update a product",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "ProductTable" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/product/{Id}",
+              "Method": "PUT"
+            }
+          }
+        }
+      }
+    },
+
+    "RemoveProduct" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.ProductFunctions::RemoveProductAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to remove a product",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "ProductTable" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/product/{Id}",
+              "Method": "DELETE"
+            }
+          }
+        }
+      }
+    },
+
+    "ProductTable" : {
+        "Type" : "AWS::DynamoDB::Table",
+        "Condition" : "CreateProductTable",
+        "Properties" : {
+            "TableName" : { "Fn::If" : ["TableNameGenerated", {"Ref" : "AWS::NoValue" }, { "Ref" : "ProductTableName" } ] },
+            "AttributeDefinitions" : [
+              {"AttributeName" : "Id", "AttributeType" : "S"}
+            ],
+            "KeySchema"            : [
+              {"AttributeName" : "Id", "KeyType" : "HASH"}
+            ],
+            "ProvisionedThroughput" : {
+                "ReadCapacityUnits" : { "Ref" : "ReadCapacity" },
+                "WriteCapacityUnits" : { "Ref" : "WriteCapacity" }
+            }
+        }
+    },
+
+
+	"GetUsers" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::GetUsersAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a list of users",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "GetUser" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::GetUserAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a single user",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user/{Id}",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+	"UserLogin" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::UserLoginAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a single user based on username and password",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user/username/{UserName}/password/{Password}",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "AddUser" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::AddUserAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to add a user",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    },
+
+	"UpdateUser" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::UpdateUserAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to update a user",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user/{Id}",
+              "Method": "PUT"
+            }
+          }
+        }
+      }
+    },
+
+    "RemoveUser" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.UserFunctions::RemoveUserAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to remove a user",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "UserTable" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/user/{Id}",
+              "Method": "DELETE"
+            }
+          }
+        }
+      }
+    },
+
+    "UserTable" : {
+        "Type" : "AWS::DynamoDB::Table",
+        "Condition" : "CreateUserTable",
+        "Properties" : {
+            "TableName" : { "Fn::If" : ["UserTableNameGenerated", {"Ref" : "AWS::NoValue" }, { "Ref" : "UserTableName" } ] },
+            "AttributeDefinitions" : [
+              {"AttributeName" : "Id", "AttributeType" : "S"}
+            ],
+            "KeySchema"            : [
+              {"AttributeName" : "Id", "KeyType" : "HASH"}
+            ],
+            "ProvisionedThroughput" : {
+                "ReadCapacityUnits" : { "Ref" : "ReadCapacity" },
+                "WriteCapacityUnits" : { "Ref" : "WriteCapacity" }
+            }
+        }
+    },
+
+
+	"GetBids" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.BidFunctions::GetBidsAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a list of bids",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "BidTable" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/bid",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "GetBid" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.BidFunctions::GetBidAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a single bid",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "BidTable" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/bid/{Id}",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+	"GetBidsByProductId" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.BidFunctions::GetBidsByProductIdAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to get a list of bids related to product Id",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "BidTable" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/bid/product/{ProductId}",
+              "Method": "GET"
+            }
+          }
+        }
+      }
+    },
+
+    "AddBid" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.BidFunctions::AddBidAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to add a bid",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "BidTable" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/bid",
+              "Method": "PUT"
+            }
+          }
+        }
+      }
+    },
+
+    "RemoveBid" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "AWSServerless1::AWSServerless1.Functions.BidFunctions::RemoveBidAsync",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Function to remove a bid",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess" ],
+        "Environment" : {
+          "Variables" : {
+            "BidTable" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/bid/{Id}",
+              "Method": "DELETE"
+            }
+          }
+        }
+      }
+    },
+
+	"BidTable" : {
+        "Type" : "AWS::DynamoDB::Table",
+        "Condition" : "CreateBidTable",
+        "Properties" : {
+            "TableName" : { "Fn::If" : ["BidTableNameGenerated", {"Ref" : "AWS::NoValue" }, { "Ref" : "BidTableName" } ] },
+            "AttributeDefinitions" : [
+              {"AttributeName" : "Id", "AttributeType" : "S"}
+            ],
+            "KeySchema"            : [
+              {"AttributeName" : "Id", "KeyType" : "HASH"}
+            ],
+            "ProvisionedThroughput" : {
+                "ReadCapacityUnits" : { "Ref" : "ReadCapacity" },
+                "WriteCapacityUnits" : { "Ref" : "WriteCapacity" }
+            }
+        }
+    }
+
+  },
+
+  "Outputs" : {
+    "ProductTable" : {
+        "Value" : { "Fn::If" : ["CreateProductTable", {"Ref":"ProductTable"}, { "Ref" : "ProductTableName" } ] }
+    },
+	"UserTable" : {
+        "Value" : { "Fn::If" : ["CreateUserTable", {"Ref":"UserTable"}, { "Ref" : "UserTableName" } ] }
+    },
+	"BidTable" : {
+        "Value" : { "Fn::If" : ["CreateBidTable", {"Ref":"BidTable"}, { "Ref" : "BidTableName" } ] }
+    }
+  }
+}
